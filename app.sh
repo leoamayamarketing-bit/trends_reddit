@@ -39,6 +39,7 @@ menu() {
     echo " 5) Consultas relacionadas en Trends"
     echo " 6) Detalle de un post (por ID)"
     echo " 7) Usar otra palabra clave"
+    echo " 8) Configurar Reddit API"
     echo " 0) Salir"
     echo "------------------------------"
     read -rp "Opcion: " opt
@@ -85,6 +86,11 @@ menu() {
             ;;
         7)
             read -rp "Nueva palabra clave: " KEYWORD && KEYWORD="${KEYWORD//\"/}"
+            menu
+            ;;
+        8)
+            echo ">>> Configurar Reddit API:"
+            python -m src.cli setup
             menu
             ;;
         0) exit 0 ;;
