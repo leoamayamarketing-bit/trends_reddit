@@ -4,7 +4,12 @@ cd "$(dirname "$0")"
 
 source venv/bin/activate
 
-KEYWORD="${1:-Lego}"
+if [ $# -eq 0 ]; then
+    read -rp "Palabra a buscar: " KEYWORD
+else
+    KEYWORD="$1"
+fi
+KEYWORD="${KEYWORD//\"/}"
 
 check_reddit() {
     python -c "from src.config import RedditConfig; exit(0) if RedditConfig().is_valid() else exit(1)" 2>/dev/null
