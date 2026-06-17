@@ -6,6 +6,20 @@ source venv/bin/activate
 
 KEYWORD="${1:-Lego}"
 
+check_reddit() {
+    python -c "from src.config import RedditConfig; exit(0) if RedditConfig().is_valid() else exit(1)" 2>/dev/null
+}
+
+reddit_ok() {
+    if check_reddit; then
+        return 0
+    else
+        echo "  ⚠ Reddit no configurado. Ejecuta: python -m src.cli setup"
+        echo ""
+        return 1
+    fi
+}
+
 menu() {
     echo ""
     echo "=============================="
@@ -26,18 +40,24 @@ menu() {
     echo ""
     case $opt in
         1)
-            echo ">>> Hot posts de r/$KEYWORD (top 10):"
-            python -m src.cli hot "$KEYWORD" --limit 10
+            if reddit_ok; then
+                echo ">>> Hot posts de r/$KEYWORD (top 10):"
+                python -m src.cli hot "$KEYWORD" --limit 10
+            fi
             menu
             ;;
         2)
-            echo ">>> Top posts de r/$KEYWORD esta semana (top 5):"
-            python -m src.cli top "$KEYWORD" --limit 5 --time week
+            if reddit_ok; then
+                echo ">>> Top posts de r/$KEYWORD esta semana (top 5):"
+                python -m src.cli top "$KEYWORD" --limit 5 --time week
+            fi
             menu
             ;;
         3)
-            echo ">>> Buscar '$KEYWORD' en Reddit:"
-            python -m src.cli search "$KEYWORD" --limit 5
+            if reddit_ok; then
+                echo ">>> Buscar '$KEYWORD' en Reddit:"
+                python -m src.cli search "$KEYWORD" --limit 5
+            fi
             menu
             ;;
         4)
@@ -51,13 +71,15 @@ menu() {
             menu
             ;;
         6)
-            read -rp "Post ID: " post_id
-            echo ">>> Detalle del post $post_id:"
-            python -m src.cli details "$post_id"
+            if reddit_ok; then
+                read -rp "Post ID: " post_id
+                echo ">>> Detalle del post $post_id:"
+                python -m src.cli details "$post_id"
+            fi
             menu
             ;;
         7)
-            read -rp "Nueva palabra clave: " KEYWORD
+            read -rp "Nueva palabra clave: " KEYWORD && KEYWORD="${KEYWORD//\"/}"
             menu
             ;;
         0) exit 0 ;;
@@ -74,9 +96,14 @@ if [ $# -ge 1 ]; then
     echo ""
     echo ">>> Consultas relacionadas:"
     python -m src.cli related "$KEYWORD"
-    echo ""
-    echo ">>> Hot posts de r/$KEYWORD (top 5):"
-    python -m src.cli hot "$KEYWORD" --limit 5
+    if check_reddit; then
+        echo ""
+        echo ">>> Hot posts de r/$KEYWORD (top 5):"
+        python -m src.cli hot "$KEYWORD" --limit 5
+    else
+        echo ""
+        echo "  ⚠ Reddit no configurado. Para activar: python -m src.cli setup"
+    fi
 else
     menu
 fi
